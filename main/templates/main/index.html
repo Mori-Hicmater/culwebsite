@@ -1,0 +1,133 @@
+{% extends 'main/layout.html' %}
+{% load static %}
+
+{% block title %}Кулинарный компас — простые рецепты{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+
+    <!-- ВЕРХНЯЯ ЧАСТЬ  -->
+    <div class="row align-items-center sitesm-custom-block">
+
+        <!-- Левая колонка -->
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="sitesm-image-wrapper">
+                <img src="{% static 'main/img/img.png' %}" alt="Вкусная еда" class="img-fluid">
+            </div>
+        </div>
+
+        <!-- Правая колонка -->
+        <div class="col-md-6 ps-md-5">
+            <h1 class="display-4 fw-bold mb-4" style="color: #1f1f20; line-height: 1.1;">
+                Хороший день<br>начинается<br>с вкусной еды.
+            </h1>
+            <p class="lead text-muted mb-0">
+                Знакомые продукты. Новые сочетания.<br>
+                Находи свой рецепт и готовь с удовольствием.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- ПОИСК  -->
+    <div class="row justify-content-center my-5">
+        <div class="col-md-8">
+            <div class="search-wrapper shadow-sm rounded-3 bg-white">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                <input type="text" class="custom-search-input bg-transparent border-0" id="searchInput" placeholder="Название блюда или ингредиент...">
+            </div>
+        </div>
+    </div>
+
+    <!-- НИЖНЯЯ ЧАСТЬ -->
+    <div class="d-flex justify-content-between align-items-end mb-4 mt-5">
+        <div>
+            <p class="text-uppercase text-muted mb-1" style="font-size: 0.85rem; letter-spacing: 1px;">Маленькие открытия на каждый день</p>
+            <h2 class="section-title mb-0" style="font-size: 2rem; font-weight: 700;">Что приготовим сегодня?</h2>
+        </div>
+
+        <!-- Выпадающее меню (справа) -->
+        <div class="custom-dropdown-wrapper">
+            <select class="custom-dropdown" id="categorySelect">
+                <option value="Все">Все рецепты</option>
+                <option value="Основные блюда">Основные блюда</option>
+                <option value="Завтрак">Завтрак</option>
+                <option value="Ужин">Ужин</option>
+                <option value="Десерт">Десерт</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Сетка карточек -->
+    <div class="row g-4" id="cardsContainer">
+        {% for el in cards %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 card-item"
+                 data-category="{{ el.pretitele }}"
+                 data-title="{{ el.title|lower }}">
+
+                <!-- Карточка обернута в ссылку -->
+                <a href="{% url 'about' el.id %}" class="text-decoration-none">
+                    <div class="card custom-card h-100 border-0 shadow-sm">
+                        <!-- Картинка-->
+                        <img src="{{ el.dishing.url }}" class="card-img-top" alt="{{ el.title }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <p class="text-muted mb-1" style="font-size: 0.8rem;">{{ el.pretitele }}</p>
+                            <h5 class="card-title text-dark fw-bold mb-0" style="font-size: 1.1rem;">{{ el.title }}</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="no-results text-center py-5">Рецептов пока нет. Добавьте их через админку.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- фильтр ничего не нашел -->
+    <div id="noResultsMessage" class="no-results text-center py-5" style="display: none;">
+        <h4 class="text-muted">По вашему запросу ничего не найдено.</h4>
+        <p class="text-muted">Попробуйте изменить категорию или ввести другое название.</p>
+    </div>
+
+</div>
+{% endblock %}
+
+<!-- Скрипт фильтрации -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const cards = document.querySelectorAll('.card-item');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+
+        function filterCards() {
+            const searchText = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categorySelect.value;
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                const category = card.getAttribute('data-category');
+                const matchesSearch = title.includes(searchText);
+                const matchesCategory = (selectedCategory === 'Все' || category === selectedCategory);
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = ''; // Показываем
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none'; // Скрываем
+                }
+            });
+
+            noResultsMessage.style.display = (visibleCount === 0) ? 'block' : 'none';
+        }
+
+        searchInput.addEventListener('input', filterCards);
+        categorySelect.addEventListener('change', filterCards);
+    });
+</script>
+{% endblock %}
